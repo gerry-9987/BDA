@@ -1,0 +1,1 @@
+tweets_df.to_json("twitter_scraped1.json", orient="records")
