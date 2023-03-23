@@ -115,29 +115,4 @@ def sentiment_analysis():
 
     return json.dumps(response)
 
-def str_to_list(text):
-    text = text[1:len(text)-1]
-    text_list = text.split(',')
-    text_list = [text.strip()[1:-1] for text in text_list]
-    return text_list
-
-def compute_evaluation_values(corpus, dictionary, k):
-    
-    lda_model = gensim.models.LdaMulticore(corpus=corpus,
-                                           id2word=id2word,
-                                           num_topics=k, 
-                                           random_state=100,
-                                           chunksize=100,
-                                           passes=10,
-                                           per_word_topics=True)
-    
-    coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-    perplexity = lda_model.log_perplexity(corpus)
-    
-    return [coherence_model_lda.get_coherence(), perplexity]
-
-def Sort_Tuple(tup):  
-    return(sorted(tup, key = lambda x: x[1], reverse = True))
-    
-
 

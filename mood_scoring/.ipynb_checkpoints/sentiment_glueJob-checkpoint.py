@@ -32,46 +32,6 @@ for obj in bucket.objects.all():
 # Create a Pandas dataframe from the S3 data
 df_s3 = pd.DataFrame(data)
 
-# Creating the corpus
-data_lemmatized = df_s3['text_content'].tolist()
-data_lemmatized = [str_to_list(text) for text in data_lemmatized]
-
-# Create Dictionary
-id2word = corpora.Dictionary(data_lemmatized)
-
-# Filter out tokens that appear in only 1 documents and appear in more than 90% of the documents
-id2word.filter_extremes(no_below=2, no_above=0.9)
-
-# Create Corpus
-texts = data_lemmatized
-
-# Term Document Frequency
-corpus = [id2word.doc2bow(text) for text in texts]
-
-# Build LDA Model
-ntopics = 10
-
-lda_model = gensim.models.LdaMulticore(corpus=corpus,
-                                       id2word=id2word,
-                                       num_topics=ntopics, 
-                                       random_state=100,
-                                       chunksize=100,
-                                       passes=10,
-                                       per_word_topics=True)
-
-doc_num, topic_num, prob = [], [], []
-lda_model.get_document_topics(corpus)
-for n in range(len(df_s3)):
-    get_document_topics = lda_model.get_document_topics(corpus[n])
-    doc_num.append(n)
-    sorted_doc_topics = Sort_Tuple(get_document_topics)
-    topic_num.append(sorted_doc_topics[0][0])
-    prob.append(sorted_doc_topics[0][1])
-    
-df_s3['Doc'] = doc_num
-df_s3['Topic'] = topic_num
-df_s3['Probability'] = prob
-
 # Perform sentiment analysis
 scores = get_sentiment_scores(df_s3["text_content"])
 
