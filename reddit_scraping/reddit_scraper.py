@@ -15,7 +15,7 @@ def get_submission_data(submission, submission_list):
     title = submission['title']
     body = submission['selftext']
     author = submission['author']
-    created = submission['utc_datetime_str']
+    created = datetime.strftime(datetime.strptime(submission['utc_datetime_str'], '%Y-%m-%d %H:%M:%S') + relativedelta(hours=8), '%Y-%m-%d %H:%M:%S')
     upvotes = submission['score']
     num_of_comments = submission['num_comments']
     link = submission['permalink']
@@ -33,7 +33,7 @@ def etl():
     subreddit_list = get_subreddit_list()
     for sub in subreddit_list:
         before = int(datetime.now().timestamp())
-        after = int((datetime.now() - relativedelta(months=1)).timestamp())
+        after = int((datetime.now() - relativedelta(hours=3)).timestamp())
         submission_list = []
         count = 0
         while before > after:
@@ -41,8 +41,8 @@ def etl():
 
             for submission in pushshift_data:
                 submission_list = get_submission_data(submission, submission_list)
-            
-            if pushshift_data[-1]['retrieved_utc'] == before:
+
+            if len(pushshift_data) == 0 or pushshift_data[-1]['retrieved_utc'] == before:
                 break
 
             before = pushshift_data[-1]['retrieved_utc']
