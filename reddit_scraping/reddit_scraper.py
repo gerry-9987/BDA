@@ -3,6 +3,43 @@ import requests
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+related_words= [
+    'class',
+    'lecture',
+    'professor',
+    'prof',
+    'homework',
+    'exam',
+    'assignment',
+    'study' ,
+    'degree',
+    'gpa',
+    'cap',
+    'scholarship',
+    'research',
+    'thesis',
+    'lab',
+    'campus',
+    'graduation',
+    'syllabus',
+    'textbook',
+    'student' ,
+    'academic',
+    'registrar',
+    'tuition',
+    'coursework',
+    'attendance',
+    'faculty',
+    'student',
+    'internship',
+    'library',
+    'peer',
+    'school',
+    'university',
+    'uni',
+    'college'
+]
+
 def get_pushshift_data(after, before, sub):
     url = 'https://api.pushshift.io/reddit/search/submission/?&after='+str(after)+'&before='+str(before)+'&subreddit='+str(sub)+'&size=1000'
     print(url)
@@ -20,7 +57,14 @@ def get_submission_data(submission, submission_list):
     num_of_comments = submission['num_comments']
     link = submission['permalink']
     subreddit = submission['subreddit']
-    submission_list.append({'id': id, 'title': title, 'body': body, 'author': author, 'created': created, 'upvotes': upvotes, 'num_of_comments': num_of_comments, 'link': link, 'subreddit': subreddit})
+    if subreddit == 'ChatGPT':
+        for related_word in related_words:
+            if related_word in title.split() or related_word in body.split():
+                submission_list.append({'id': id, 'title': title, 'body': body, 'author': author, 'created': created, 'upvotes': upvotes, 'num_of_comments': num_of_comments, 'link': link, 'subreddit': subreddit})
+                break
+    else:
+        if 'ChatGPT' in title.split() or 'ChatGPT' in body.split():
+            submission_list.append({'id': id, 'title': title, 'body': body, 'author': author, 'created': created, 'upvotes': upvotes, 'num_of_comments': num_of_comments, 'link': link, 'subreddit': subreddit})
     return submission_list
 
 def get_subreddit_list():
@@ -34,6 +78,7 @@ def etl():
     for sub in subreddit_list:
         before = int(datetime.now().timestamp())
         after = int((datetime.now() - relativedelta(hours=3)).timestamp())
+        current = before
         submission_list = []
         count = 0
         while before > after:
@@ -47,13 +92,13 @@ def etl():
 
             before = pushshift_data[-1]['retrieved_utc']
 
-            with open('./data/'+str(sub)+str(count)+'.json', 'w') as json_file:
-                json_object = json.dumps(pushshift_data, indent=4)
-                json_file.write(json_object)
+            # with open('./data/'+str(sub)+str(count)+'.json', 'w') as json_file:
+            #     json_object = json.dumps(pushshift_data, indent=4)
+            #     json_file.write(json_object)
             
-            count+=1
+            # count+=1
         
-        with open('./data/reddit_'+str(sub)+'.json', 'w') as json_file:
+        with open('./data/reddit_'+str(sub)+'_'+str(current)+'.json', 'w') as json_file:
             json_object = json.dumps(submission_list, indent=4)
             json_file.write(json_object)
 
