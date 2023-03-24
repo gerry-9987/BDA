@@ -120,11 +120,16 @@ def clean_original_text(text):
 
     return clean_text
 
+def id_to_str(text):
+    text = str(text)
+
+    return text
+
 #for json object (not file) that is scraped from twitter 
 
 twitter_df = pd.read_json("") #read the json object string
 twitter_df["clean_text"] = twitter_df["text"].apply(clean_original_text)
-twitter_df["clean_tokens"] = twitter_df["clean_text"].apply(nltk.word_tokenize)
+twitter_df["id"] = twitter_df["id"].apply(id_to_str)
 twitter_df = twitter_df.drop_duplicates(subset=["clean_text"])
 twitter_df = twitter_df.dropna(subset=["clean_text"])
 twitter_df = twitter_df.drop(columns=['created_at','edit_history_tweet_ids','context_annotations', 'public_metrics.retweet_count',	'public_metrics.reply_count',	'public_metrics.like_count',	'public_metrics.quote_count',	'public_metrics.impression_count'])
@@ -132,18 +137,28 @@ twitter_df["text"] = twitter_df["text"].str.lower()
 twitter_df = twitter_df.replace('\n',' ', regex=True)
 twitter_df = twitter_df.apply(lambda x: x.str.replace(',',' '))
 twitter_df = twitter_df.set_index("id")
+twitter_df = twitter_df.reset_index()
 # twitter_df = twitter_df.reset_index(drop=True)
 # twitter_df.index.names = ['id']
 # twitter_df = twitter_df.reset_index()
 #transfer to csv - json will be have the datetime of the scrape as the name "datetime_cleaned"
-twitter_df.to_csv("") #to the read folder in s3 bucket - naming convention ("tweets_datetime")
+twitter_df.to_csv("", index=False) #to the read folder in s3 bucket - naming convention ("tweets_datetime")
 
 
 #for json object (not file) that is scraped from reddit 
 
 reddit_df = pd.read_json("") #read the json object string
-reddit_df = reddit_df.drop_duplicates(subset=["title"])
-reddit_df = reddit_df.dropna(subset=["title"])
+reddit_df["clean_title"] = reddit_df["title"].apply(clean_original_text)
+reddit_df["clean_body"] = reddit_df["body"].apply(clean_original_text)
+reddit_df["id"] = reddit_df["id"].apply(id_to_str)
+reddit_df = reddit_df.drop_duplicates(subset=["clean_title"])
+reddit_df = reddit_df.dropna(subset=["clean_title"])
 reddit_df = reddit_df.drop(columns=['author','created','upvotes','num_of_comments','link','subreddit'])
+reddit_df["title"] = reddit_df["title"].str.lower()
+reddit_df["body"] = reddit_df["body"].str.lower()
+reddit_df = reddit_df.replace('\n',' ', regex=True)
+reddit_df = reddit_df.apply(lambda x: x.str.replace(',',' '))
+reddit_df = reddit_df.set_index("id")
+reddit_df = reddit_df.reset_index()
 #transfer to csv - json will be have the datetime of the scrape as the name "datetime_cleaned"
-reddit_df.to_csv("") #to the read folder in s3 bucket - naming convention ("reddit_subreddit_datetime")
+reddit_df.to_csv("", index=False) #to the read folder in s3 bucket - naming convention ("reddit_subreddit_datetime")
